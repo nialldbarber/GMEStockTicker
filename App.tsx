@@ -5,12 +5,12 @@ import {
   View,
   ActivityIndicator,
   TextInput,
-  Button,
+  TouchableOpacity,
 } from 'react-native';
 import {StatusBar} from 'expo-status-bar';
 import tw from 'tailwind-react-native-classnames';
 import {StonksProvider, StonksContext} from './context';
-import {fetchData, round, getTickerSymbol} from './utils';
+import {fetchData, round, getTickerSymbol, fetchListOfTickers} from './utils';
 import CurrentTime from './components/CurrentTime';
 import Price from './components/Price';
 
@@ -43,9 +43,7 @@ export function GME() {
 
     async function getLatestPrice() {
       try {
-        const data = await fetchData(
-          getTickerSymbol(ticker === '' ? 'AMZN' : ticker)
-        );
+        const data = await fetchData(getTickerSymbol(ticker));
         const gme = data?.chart?.result[0];
         const time = new Date(gme.meta.regularMarketTime * 1000);
         const quote = gme.indicators.quote[0];
@@ -77,6 +75,10 @@ export function GME() {
     return () => clearTimeout(timeoutId);
   }, [ticker]);
 
+  useEffect(() => {
+    fetchListOfTickers();
+  }, []);
+
   return (
     <View style={[styles.container, tw`bg-gray-900`]}>
       {loading ? (
@@ -88,16 +90,22 @@ export function GME() {
           </Text>
           <CurrentTime />
           <Price />
-          <View style={tw`absolute bottom-20 w-40 bg-white`}>
+          <View style={[tw`absolute bottom-20`, {width: 300}]}>
             <TextInput
-              style={tw`p-2`}
-              value={input}
+              style={tw`p-2 bg-white rounded-t-sm`}
+              value={input.toUpperCase()}
+              autoCorrect={false}
               onChangeText={(text) => setInput(text)}
             />
-            <Button
-              title="Change Ticker"
-              onPress={() => setTicker(input.toUpperCase())}
-            />
+            <TouchableOpacity
+              style={tw`flex items-center justify-center h-10 bg-red-500 my-1 rounded-t-sm`}
+              onPress={() => {
+                setTicker(input.toUpperCase());
+                setInput('');
+              }}
+            >
+              <Text style={tw`text-white text-lg`}>Change Ticker</Text>
+            </TouchableOpacity>
           </View>
         </>
       )}
