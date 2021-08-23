@@ -1,9 +1,16 @@
-import React, {useEffect, useContext} from 'react';
-import {StyleSheet, Text, View, ActivityIndicator} from 'react-native';
+import React, {useState, useEffect, useContext} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+  TextInput,
+  Button,
+} from 'react-native';
 import {StatusBar} from 'expo-status-bar';
 import tw from 'tailwind-react-native-classnames';
 import {StonksProvider, StonksContext} from './context';
-import {fetchData, round} from './utils';
+import {fetchData, round, getTickerSymbol} from './utils';
 import CurrentTime from './components/CurrentTime';
 import Price from './components/Price';
 
@@ -26,6 +33,8 @@ export default function App() {
 }
 
 export function GME() {
+  const [input, setInput] = useState<string>('');
+  const [ticker, setTicker] = useState<string>('');
   const {loading, setLoading, setError, setPrice, setCurrentTime} =
     useContext(StonksContext);
 
@@ -34,7 +43,9 @@ export function GME() {
 
     async function getLatestPrice() {
       try {
-        const data = await fetchData();
+        const data = await fetchData(
+          getTickerSymbol(ticker === '' ? 'AMZN' : ticker)
+        );
         const gme = data?.chart?.result[0];
         const time = new Date(gme.meta.regularMarketTime * 1000);
         const quote = gme.indicators.quote[0];
@@ -50,8 +61,6 @@ export function GME() {
           })
         );
 
-        console.log(allPrices);
-
         setPrice && setPrice(gme.meta.regularMarketPrice.toFixed(2));
         setCurrentTime && setCurrentTime(time);
         setLoading && setLoading(false);
@@ -66,7 +75,7 @@ export function GME() {
     timeoutId = setTimeout(getLatestPrice, 5000);
 
     return () => clearTimeout(timeoutId);
-  }, []);
+  }, [ticker]);
 
   return (
     <View style={[styles.container, tw`bg-gray-900`]}>
@@ -75,10 +84,21 @@ export function GME() {
       ) : (
         <>
           <Text style={[styles.text, tw`absolute top-20 left-6 text-white`]}>
-            GME
+            {ticker === '' ? 'AMZN' : ticker}
           </Text>
           <CurrentTime />
           <Price />
+          <View style={tw`absolute bottom-20 w-40 bg-white`}>
+            <TextInput
+              style={tw`p-2`}
+              value={input}
+              onChangeText={(text) => setInput(text)}
+            />
+            <Button
+              title="Change Ticker"
+              onPress={() => setTicker(input.toUpperCase())}
+            />
+          </View>
         </>
       )}
     </View>

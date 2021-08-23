@@ -8,7 +8,12 @@ export default function Price() {
 
   return (
     <View style={[styles.container, tw`absolute top-40 left-7 mt-10`]}>
-      <Text style={tw`text-white text-xl`}>${price}</Text>
+      <Text style={tw`text-white text-xl`}>
+        {new Intl.NumberFormat('en', {
+          style: 'currency',
+          currency: 'USD',
+        }).format(price)}
+      </Text>
     </View>
   );
 }
