@@ -3,14 +3,12 @@ import {StyleSheet, View, Text} from 'react-native';
 import tw from 'tailwind-react-native-classnames';
 import {StonksContext} from '../context';
 
-export default function CurrentTime() {
-  const {currentTime} = useContext(StonksContext);
+export default function Price() {
+  const {price} = useContext(StonksContext);
 
   return (
-    <View style={[styles.container, tw`absolute top-40 left-7`]}>
-      <Text style={tw`text-white text-xl`}>
-        {currentTime && currentTime.toLocaleTimeString()}
-      </Text>
+    <View style={[styles.container, tw`absolute top-40 left-7 mt-10`]}>
+      <Text style={tw`text-white text-xl`}>${price}</Text>
     </View>
   );
 }
