@@ -21,10 +21,10 @@ interface StonksState {
   error: boolean;
   price: number;
   currentTime: null | Date;
-  setLoading?: () => boolean;
-  setError?: () => boolean;
-  setPrice?: () => number;
-  setCurrentTime?: () => Date;
+  setLoading?: (loading: boolean) => boolean;
+  setError?: (err: boolean) => boolean;
+  setPrice?: (price: number) => number;
+  setCurrentTime?: (currentTime: Date) => Date;
 }
 
 type Action =
@@ -96,10 +96,10 @@ export const StonksProvider = (props: any) => {
 
 export default function App() {
   return (
-    <>
+    <StonksProvider>
       <StatusBar style="light" />
       <GME />
-    </>
+    </StonksProvider>
   );
 }
 
@@ -116,22 +116,26 @@ export function GME() {
   } = useContext(StonksContext);
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     async function getLatestPrice() {
       try {
         const data = await fetchData();
         const gme = data?.chart?.result[0];
-        const time = new Date(gme?.meta?.regularMarketTime * 1000);
+        const time = new Date(gme.meta.regularMarketTime * 1000);
 
-        setPrice(gme?.meta?.regularMarketPrice?.toFixed(2));
-        setCurrentTime(time);
+        setPrice && setPrice(gme.meta.regularMarketPrice.toFixed(2));
+        setCurrentTime && setCurrentTime(time);
       } catch (err) {
         console.log(err);
       }
-    }
-    getLatestPrice();
-  }, []);
 
-  console.log(currentTime);
+      timeoutId = setTimeout(getLatestPrice, 5000);
+    }
+    timeoutId = setTimeout(getLatestPrice, 5000);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   return (
     <View style={[styles.container, tw`bg-gray-900`]}>
@@ -139,6 +143,9 @@ export function GME() {
         GME
       </Text>
       <CurrentTime currentTime={currentTime} />
+      <Text style={{position: 'absolute', color: 'white', top: 400, left: 50}}>
+        Price is: {`$${price}`}
+      </Text>
     </View>
   );
 }
